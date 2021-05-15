@@ -10,6 +10,7 @@ import PIL.Image, PIL.ImageTk
 import sys
 import os.path
 from PIL import Image
+import asyncio
 
 client = commands.Bot(command_prefix=".")
 
@@ -17,11 +18,13 @@ class BotData:
     def __init__(self):
         self.counting_channel = None
 
+client1 = discord.Client()
+
 botdata = BotData()
 
 @client.event
 async def on_ready():
-    print("Bot ready!")
+    print(f"{client.user} ready!")
 
 @client.command(aliases=["poke","pokemon","p","about"])
 async def find(ctx,*,pokemon_name):
@@ -55,106 +58,50 @@ async def find(ctx,*,pokemon_name):
     embed.set_thumbnail(url = ctx.author.avatar_url)
     await ctx.send(file = filePath,embed=embed)
 
-
-# @client.command()
-# async def test(ctx):
-#     embed = discord.Embed(color = discord.Color.blue())
-#     width = 7
-#     height = 7
-
-#     await ctx.send(":white_large_square:" * width)
-#     for i in range(height):
-#         await ctx.send(":white_large_square:" + ('          ' * width) + ":white_large_square:")
-#         if i == 4:
-#             pass
-#     await ctx.send(":white_large_square:" * width)
-
-#     embed.add_field(name = "\u200B", value="\u200B")
-
 @client.command(aliases=["counting"])
-async def counting_channel(ctx, channel_name = None):
-    if channel_name != None:
-        for channel in ctx.guild.channels:
-            if channel.name == channel_name:
-                botdata.counting_channel = channel
-                await ctx.channel.send(f"Counting channel has been set to: {channel.name}")
-                await channel.send(f"This is your counting channel")
-                return channel_name
+async def counting_channel(ctx, channel: discord.TextChannel):
+    if channel != None:
+        if channel.name == channel:
+            botdata.counting_channel = channel
+            await ctx.channel.send(f"Counting channel has been set to: {channel.name}")
+            await channel.send(f"This is your counting channel")
 
     else:
         await ctx.channel.send("You didnt configure a counting channel")
 
 
-# @client.event
-# async def on_message(message:discord.Message):
-#     channel = client.get_channel(id = 830233837694877729)
-#     if message.channel.id == 830233837694877729 and message.guild.id == 830233837119471637:
-#         if not message.author.bot:
-#             pass
-#         else:
-#             pass
-            
-                
-
-                # change the order of the coderst)
-
-
-                    # n = first + 1
-                    # print(n)
-                    # print("number to be entered", n)
-                    # next_number = str(n)
-                    # if msg.content == next_number:
-                    #     first += 1
-                    #     print(first)
-                    #     print("Passed!")
-                    #     print(f"Next number : {first + 1}")
-                        
-                        
-                            
-                    # else:
-                    #     pass
-        
-# @client.command()
-# async def test(ctx):
-#     await ctx.send("y or n")
-#     def check(msg):
-#         return msg.author == ctx.author and msg.channel == ctx.channel and msg.content.lower() in ["y","n"]
-
-#     msg = await client.wait_for("message",check=check)
-#     if msg.content.lower() == "y":
-#         await ctx.send("You said yes")
-#     if msg.content.lower() == "n":
-#         await ctx.send("You said no")
-
-# @client.event
-# async def on_message(message):
-#     if message.content.startswith(".greet"):
-#         channel = message.channel
-#         await message.channel.send('say Hello')
-
-#         def check(m):
-#             return m.content == "hello" and m.channel == channel
-        
-#         msg = await client.wait_for('message', check=check)
-#         await channel.send(f"Hello {msg.author}")
+@client.listen()
+async def on_message(message):
+    async def clear(ctx, amount):
+        await ctx.channel.purge(limit = amount + 1)
     
-#     await client.process_commands(message)
+    channel = client.get_channel(842990700308070420)
+    if message.channel != channel or message.author.bot:
+        #wrong channel or author is a bot
+        return
 
-@client.event
-async def on_message(message):  
-    channel = client.get_channel(830233837694877729)
-    if not message.author.bot:
-        if channel is None:
-            print("cant find channel")
-            return
-        msg = await channel.fetch_message(channel.last_message.id)
-        await message.channel.send(f"Last message in channel {channel.name} sent by {msg.author.name} and contains {msg.content}")
+    latest_messages = await channel.history(limit=2).flatten()
+    lastest_message2 = latest_messages[1].author
+    lastest_message1 = latest_messages[0].author
+    if not all(msg.content.isdigit() for msg in latest_messages):
+        #not all the messages are an int
+        return
+    
+    if not message.content.isdigit():
+        #input message is not an int
+        await clear(message,int(latest_messages[0].content))
 
-    # if message.channel.id == channel and message.guild.id == 830233837119471637:
-        
-            
-
-
+    if (int(latest_messages[0].content) - int(latest_messages[1].content)) == 1 and lastest_message1 != lastest_message2:
+        print("looking good")
+    else:   
+        print("Number squence break")
+        await clear(message,int(latest_messages[0].content))
+    
+    # history = await channel.history().flatten()
+    # guild = message.guild
+    # if lastest_message1 == lastest_message2:
+    #     print("User repeated")
+    #     await clear(message,int(latest_messages[0].content))
 
 
 @client.command()
