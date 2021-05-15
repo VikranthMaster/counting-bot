@@ -81,7 +81,7 @@ async def counting_channel(ctx, channel: discord.TextChannel):
 async def on_message(message):
     async def clear(ctx, amount):
         await ctx.channel.purge(limit = amount + 1)
-    
+
     channel = client.get_channel(843068576936230912)
     if message.channel != channel or message.author.bot:
         #wrong channel or author is a bot
@@ -93,7 +93,7 @@ async def on_message(message):
     if not all(msg.content.isdigit() for msg in latest_messages):
         #not all the messages are an int
         return
-    
+
     if not message.content.isdigit():
         #input message is not an int
         await clear(message,int(latest_messages[0].content))
@@ -106,7 +106,7 @@ async def on_message(message):
             await clear(message,int(latest_messages[0].content))
     else:
         print("User repeated...deleting")
-        
+
         # history = await channel.history().flatten()
         # guild = message.guild
         # if lastest_message1 == lastest_message2:
@@ -119,4 +119,4 @@ async def clear(ctx, amount=5):
 	await ctx.channel.purge(limit=amount)
 
 
-client.run('ODMwMjMzNTQ2MTY5Mzg0OTkw.YHDtPg.DR3ZQqmMlPEzSYCoxCyNPK29dhc')
+client.run('TOKEN') 
